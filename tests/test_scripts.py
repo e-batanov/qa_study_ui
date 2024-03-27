@@ -73,7 +73,7 @@ def test_check_catalog_price(browser, url):
     selected_currency = assert_element(browser, (By.XPATH, '//*[@id="form-currency"]/div/ul/li[2]/a'))
     selected_currency.click()
 
-    price_product_str = browser.find_element(By.XPATH, '//*[@class="price-new"]')
+    price_product_str = browser.find_elements(By.XPATH, '//*[@class="price-new"]')
     prices_str = []
     for element in price_product_str:
         price = element.text
