@@ -1,82 +1,111 @@
-from tests.common import assert_element
-from selenium.webdriver.common.by import By
+import time
+
+from page_object.login_admin_page import LoginAdminPage
+from page_object.main_page import MainPage
+from page_object.catalog_page import CatalogPage
+from page_object.admin_page import AdminPage
+from page_object.alert_element import AlertElement
+from page_object.base_page import BasePage
+from page_object.registration_page import RegistrationPage
 
 
 def test_auth_admin(browser, url):
-    browser.get(f'{url}/administration')
-
-    assert_element(browser, (By.XPATH, '//*[@class="card"]'))
-    user = browser.find_element(By.XPATH, '//*[@id="input-username"]')
-    user.send_keys('user')
-    password = browser.find_element(By.XPATH, '//*[@id="input-password"]')
-    password.send_keys('bitnami')
-    browser.find_element(By.XPATH, '//*[@class="btn btn-primary"]').click()
-    assert_element(browser, (By.XPATH, '//*[@id="nav-profile"]'))
-    log_out = assert_element(browser, (By.XPATH, '//*[@id="nav-logout"]'))
-    log_out.click()
+    login_admin_page = LoginAdminPage(browser, f'{url}/administration')
+    login_admin_page.open()
+    login_admin_page.assert_element(login_admin_page.CARD)
+    login_admin_page.login('user', 'bitnami')
+    login_admin_page.assert_profile_present()
+    login_admin_page.click_logout()
 
 
 def test_user_flow(browser, url):
-    browser.get(url)
-
-    assert_element(browser, (By.XPATH, '//*[@id="logo"]'))
-    card_header = assert_element(browser, (By.XPATH, '//*[@id="header-cart"]'))
-    card_header.click()
-    card_header = browser.find_element(By.XPATH, "//*[text()='Your shopping cart is empty!']")
-
-    card_header.click()
-    add_to_cart_buttons = browser.find_element(By.XPATH, '//*[@class="fa-solid fa-shopping-cart"]')
-    add_to_cart_buttons.click()
-
-    card_header = assert_element(browser, (By.XPATH, '//*[@id="header-cart"]'))
-    card_header.click()
-    assert not card_header.text == 'Your shopping cart is empty!'
+    main_page = MainPage(browser, url)
+    main_page.open()
+    main_page.assert_element(main_page.LOGO_OPENCARD)
+    main_page.click_cart()
+    main_page.assert_empty_cart_message()
+    main_page.click_add_to_cart()
+    main_page.click_cart()
+    main_page.assert_cart_not_empty()
 
 
 def test_check_main_price(browser, url):
-    browser.get(url)
-
-    assert_element(browser, (By.XPATH, '//*[@id="logo"]'))
-
-    price_elements_usa = browser.find_elements(By.XPATH, '//*[@class="price-new"]')
-    prices_usa = []
-    for element in price_elements_usa:
-        price = element.text
-        prices_usa.append(price)
-
-    browser.find_element(By.XPATH, '//*[@class="d-none d-md-inline"]').click()
-
-    selected_currency = assert_element(browser, (By.XPATH, '//*[@id="form-currency"]/div/ul/li[1]/a'))
-    selected_currency.click()
-
-    price_product_eur = browser.find_elements(By.XPATH, '//*[@class="price-new"]')
-    prices_eur = []
-    for element in price_product_eur:
-        price = element.text
-        prices_eur.append(price)
-
+    main_page = MainPage(browser, url)
+    main_page.open()
+    main_page.assert_element(main_page.LOGO_OPENCARD)
+    prices_usa = main_page.get_prices()
+    main_page.change_currency()
+    prices_eur = main_page.get_prices()
     assert prices_eur != prices_usa, 'Валюта не изменилась'
 
 
 def test_check_catalog_price(browser, url):
-    browser.get(f'{url}/en-gb/catalog/laptop-notebook')
-
-    assert_element(browser, (By.XPATH, '//ul[@class = "breadcrumb"]'))
-
-    price_elements_usa = browser.find_elements(By.XPATH, '//*[@class="price-new"]')
-    prices_usa = []
-    for element in price_elements_usa:
-        price = element.text
-        prices_usa.append(price)
-
-    browser.find_element(By.XPATH, '//*[@class="d-none d-md-inline"]').click()
-    selected_currency = assert_element(browser, (By.XPATH, '//*[@id="form-currency"]/div/ul/li[2]/a'))
-    selected_currency.click()
-
-    price_product_str = browser.find_elements(By.XPATH, '//*[@class="price-new"]')
-    prices_str = []
-    for element in price_product_str:
-        price = element.text
-        prices_str.append(price)
-
+    catalog_page = CatalogPage(browser, f'{url}/en-gb/catalog/laptop-notebook')
+    catalog_page.open()
+    catalog_page.assert_element(catalog_page.BREADCRUMB)
+    prices_usa = catalog_page.get_prices()
+    catalog_page.change_currency()
+    prices_str = catalog_page.get_prices()
     assert prices_str != prices_usa, 'Валюта не изменилась'
+
+
+def test_add_product(browser, url):
+    login_admin_page = LoginAdminPage(browser, f'{url}/administration')
+    login_admin_page.open()
+    login_admin_page.assert_element(login_admin_page.CARD)
+    login_admin_page.login('user', 'bitnami')
+    login_admin_page.assert_profile_present()
+
+    admin_page = AdminPage(browser, BasePage.current_url)
+    admin_page.choose_catalog()
+    admin_page.choose_products()
+    admin_page.add_new_product()
+    admin_page.input_product_name("test")
+    admin_page.input_meta_tag("test")
+    admin_page.choose_data()
+    admin_page.input_model("test")
+    admin_page.choose_seo()
+    admin_page.input_seo_keyword("test")
+    admin_page.save_product()
+    alert_element = AlertElement(browser, BasePage.current_url)
+    alert_element.check_succes_modified()
+
+
+def test_del_product(browser, url):
+    login_admin_page = LoginAdminPage(browser, f'{url}/administration')
+    login_admin_page.open()
+    login_admin_page.assert_element(login_admin_page.CARD)
+    login_admin_page.login('user', 'bitnami')
+    login_admin_page.assert_profile_present()
+
+    admin_page = AdminPage(browser, BasePage.current_url)
+    admin_page.choose_catalog()
+    admin_page.choose_products()
+    admin_page.input_product_name("test")
+    admin_page.apply_filter()
+    admin_page.click_checkbox()
+    admin_page.delete_product()
+
+    alert_element = AlertElement(browser, BasePage.current_url)
+    alert_element.alert_accept()
+    alert_element.check_succes_modified()
+
+
+def test_register_user(browser, url):
+    browser.get(url + "/en-gb?route=account/register")
+
+    registration_page = RegistrationPage(browser, BasePage.current_url)
+    registration_page.input_firstname("test")
+    registration_page.input_lastname("test")
+    registration_page.input_email("test@test.test")
+    registration_page.input_password("test")
+    registration_page.click_checkbox_privaci_policy()
+    registration_page.click_continue_button()
+    registration_page.check_succes_registration()
+
+
+def test_change_currency(browser, url):
+    main_page = MainPage(browser, url)
+    main_page.change_currency_to_eu()
+    main_page.change_currency_to_ster()
+    main_page.change_currency_to_dol()

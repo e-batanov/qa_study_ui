@@ -1,68 +1,62 @@
-from tests.common import assert_element
-from selenium.webdriver.common.by import By
+import time
+
+from page_object.main_page import MainPage
+from page_object.catalog_page import CatalogPage
+from page_object.product_page import ProductPage
+from page_object.login_admin_page import LoginAdminPage
+from page_object.registration_page import RegistrationPage
 
 
 def test_main_page(browser, url):
-    browser.get(url)
+    main_page = MainPage(browser, url)
+    main_page.open()
+    main_page.assert_logo_present()
+    main_page.click_account()
+    main_page.click_unauthenticated()
 
-    assert_element(browser, (By.XPATH, '//*[@id="logo"]'))
-    account = assert_element(browser, (By.XPATH, '//*[@id="top"]/div/div[2]/ul/li[2]/div'))
-    account.click()
+    if not main_page.is_unauthenticated_present():
+        main_page.click_logout()
 
-    un_auth = assert_element(browser, (By.XPATH, '//*[@id="top"]/div/div[2]/ul/li[2]/div/ul/li[2]/a'))
-    account.click()
-
-    if not un_auth:
-        browser.find_element(By.XPATH, '//*[@id="top"]/div/div[2]/ul/li[5]/a/span').click()
-
-    card_header = assert_element(browser, (By.XPATH, '//*[@id="header-cart"]'))
-    card_header.click()
-
-    assert_element(browser, (By.XPATH, "//*[text()='Your shopping cart is empty!']"))
+    main_page.click_cart()
+    main_page.assert_empty_cart_message()
 
 
 def test_catalog_page(browser, url):
-    browser.get(f'{url}/en-gb/catalog/laptop-notebook')
-
-    assert_element(browser, (By.XPATH, '//ul[@class = "breadcrumb"]'))
-    browser.find_element(By.XPATH, '//h2[text() = "Laptops & Notebooks"]')
-    browser.find_element(By.XPATH, '//*[@class="list-group-item active"]')
-    browser.find_element(By.XPATH, '//*[@id="product-list"]/div[1]/div/div[2]/form/div')
-    browser.find_element(By.XPATH, '//select[@id = "input-sort"]')
-    browser.find_element(By.XPATH, '//select[@id = "input-limit"]')
+    catalog_page = CatalogPage(browser, f'{url}/en-gb/catalog/laptop-notebook')
+    catalog_page.open()
+    catalog_page.assert_breadcrumb_present()
+    catalog_page.assert_category_title_present()
+    catalog_page.assert_active_category()
+    catalog_page.assert_product_list_present()
+    catalog_page.assert_sort_dropdown_present()
+    catalog_page.assert_limit_dropdown_present()
 
 
 def test_product_page(browser, url):
-    browser.get(f'{url}/en-gb/catalog/laptop-notebook')
-
-    notebook = assert_element(browser, (By.XPATH, '//*[@title="HP LP3065"]'))
-    notebook.click()
-
-    browser.find_element(By.XPATH, '//*[@class="fa-solid fa-heart"]')
-    browser.find_element(By.XPATH, '//*[@class="fa-solid fa-arrow-right-arrow-left"]')
-    name_notebook = browser.find_element(By.XPATH, '//*[@id="product-info"]/ul/li[3]/a')
-    assert name_notebook.get_attribute('text') == "HP LP3065"
-    browser.find_element(By.XPATH, '//*[@id = "button-cart"]')
+    product_page = ProductPage(browser, f'{url}/en-gb/catalog/laptop-notebook')
+    product_page.open()
+    product_page.click_notebook()
+    product_page.assert_wishlist_button_present()
+    product_page.assert_compare_button_present()
+    product_page.assert_product_name("HP LP3065")
+    product_page.assert_add_to_cart_button_present()
 
 
 def test_admin_page(browser, url):
-    browser.get(f'{url}/administration')
-
-    assert_element(browser, (By.XPATH, '//*[text() = " Please enter your login details."]'))
-    browser.find_element(By.XPATH, '//*[@id="input-username"]')
-    browser.find_element(By.XPATH, '//*[@id="input-password"]')
-    btn_login = assert_element(browser, (By.XPATH, '//*[@class="btn btn-primary"]'))
-    btn_login.click()
-    assert_element(browser, (By.XPATH, '//*[text() = " No match for Username and/or Password. "]'))
+    admin_page = LoginAdminPage(browser, f'{url}/administration')
+    admin_page.open()
+    admin_page.assert_login_prompt()
+    admin_page.assert_username_field_present()
+    admin_page.assert_password_field_present()
+    admin_page.click_login()
+    admin_page.assert_login_error_message()
 
 
 def test_registration_customer(browser, url):
-    browser.get(f'{url}/index.php?route=account/register')
-
-    assert_element(browser, (By.XPATH, '//*[@id="form-register"]'))
-    browser.find_element(By.XPATH, '//*[@id="input-firstname"]')
-    browser.find_element(By.XPATH, '//*[@id="input-lastname"]')
-    browser.find_element(By.XPATH, '//*[@id="input-email"]')
-    browser.find_element(By.XPATH, '//*[@id="input-password"]')
-    browser.find_element(By.XPATH, '//*[@class="btn btn-primary"]').click()
-    assert_element(browser, (By.XPATH, '//*[text() = " Warning: You must agree to the Privacy Policy! "]'))
+    registration_page = RegistrationPage(browser, f'{url}/index.php?route=account/register')
+    registration_page.open()
+    registration_page.assert_registration_form_present()
+    registration_page.assert_firstname_field_present()
+    registration_page.assert_lastname_field_present()
+    registration_page.assert_email_field_present()
+    registration_page.assert_password_field_present()
