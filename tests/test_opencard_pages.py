@@ -1,5 +1,4 @@
-import time
-
+import allure
 from page_object.main_page import MainPage
 from page_object.catalog_page import CatalogPage
 from page_object.product_page import ProductPage
@@ -7,6 +6,8 @@ from page_object.login_admin_page import LoginAdminPage
 from page_object.registration_page import RegistrationPage
 
 
+@allure.story('Загрузка страниц')
+@allure.title('Проверка работоспособности главной страницы')
 def test_main_page(browser, url):
     main_page = MainPage(browser, url)
     main_page.open()
@@ -21,6 +22,8 @@ def test_main_page(browser, url):
     main_page.assert_empty_cart_message()
 
 
+@allure.story('Загрузка страниц')
+@allure.title('Проверка работоспособности страницы каталога')
 def test_catalog_page(browser, url):
     catalog_page = CatalogPage(browser, f'{url}/en-gb/catalog/laptop-notebook')
     catalog_page.open()
@@ -32,6 +35,8 @@ def test_catalog_page(browser, url):
     catalog_page.assert_limit_dropdown_present()
 
 
+@allure.story('Загрузка страниц')
+@allure.title('Проверка работоспособности страницы продукта')
 def test_product_page(browser, url):
     product_page = ProductPage(browser, f'{url}/en-gb/catalog/laptop-notebook')
     product_page.open()
@@ -42,6 +47,8 @@ def test_product_page(browser, url):
     product_page.assert_add_to_cart_button_present()
 
 
+@allure.story('Загрузка страниц')
+@allure.title('Проверка работоспособности страницы администратора')
 def test_admin_page(browser, url):
     admin_page = LoginAdminPage(browser, f'{url}/administration')
     admin_page.open()
@@ -52,6 +59,8 @@ def test_admin_page(browser, url):
     admin_page.assert_login_error_message()
 
 
+@allure.story('Загрузка страниц')
+@allure.title('Проверка работоспособности страницы регистрации')
 def test_registration_customer(browser, url):
     registration_page = RegistrationPage(browser, f'{url}/index.php?route=account/register')
     registration_page.open()

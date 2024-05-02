@@ -1,5 +1,4 @@
-import time
-
+import allure
 from page_object.login_admin_page import LoginAdminPage
 from page_object.main_page import MainPage
 from page_object.catalog_page import CatalogPage
@@ -9,6 +8,8 @@ from page_object.base_page import BasePage
 from page_object.registration_page import RegistrationPage
 
 
+@allure.story('Сценарий администратора')
+@allure.title('Авторизация администратором')
 def test_auth_admin(browser, url):
     login_admin_page = LoginAdminPage(browser, f'{url}/administration')
     login_admin_page.open()
@@ -18,6 +19,8 @@ def test_auth_admin(browser, url):
     login_admin_page.click_logout()
 
 
+@allure.story('Сценарий пользователя')
+@allure.title('Добавление товаров в корзину')
 def test_user_flow(browser, url):
     main_page = MainPage(browser, url)
     main_page.open()
@@ -29,6 +32,8 @@ def test_user_flow(browser, url):
     main_page.assert_cart_not_empty()
 
 
+@allure.story('Сценарий пользователя')
+@allure.title('Проверка изменения валюты на главной странице')
 def test_check_main_price(browser, url):
     main_page = MainPage(browser, url)
     main_page.open()
@@ -39,6 +44,8 @@ def test_check_main_price(browser, url):
     assert prices_eur != prices_usa, 'Валюта не изменилась'
 
 
+@allure.story('Сценарий пользователя')
+@allure.title('Проверка изменения валюты в каталоге')
 def test_check_catalog_price(browser, url):
     catalog_page = CatalogPage(browser, f'{url}/en-gb/catalog/laptop-notebook')
     catalog_page.open()
@@ -49,6 +56,8 @@ def test_check_catalog_price(browser, url):
     assert prices_str != prices_usa, 'Валюта не изменилась'
 
 
+@allure.story('Сценарий администратора')
+@allure.title('Добавление продукта администратором')
 def test_add_product(browser, url):
     login_admin_page = LoginAdminPage(browser, f'{url}/administration')
     login_admin_page.open()
@@ -71,6 +80,8 @@ def test_add_product(browser, url):
     alert_element.check_succes_modified()
 
 
+@allure.story('Сценарий администратора')
+@allure.title('Удаление добавленного продукта')
 def test_del_product(browser, url):
     login_admin_page = LoginAdminPage(browser, f'{url}/administration')
     login_admin_page.open()
@@ -91,6 +102,8 @@ def test_del_product(browser, url):
     alert_element.check_succes_modified()
 
 
+@allure.story('Сценарий пользователя')
+@allure.title('Регистрация пользователя')
 def test_register_user(browser, url):
     browser.get(url + "/en-gb?route=account/register")
 
@@ -99,11 +112,13 @@ def test_register_user(browser, url):
     registration_page.input_lastname("test")
     registration_page.input_email("test@test.test")
     registration_page.input_password("test")
-    registration_page.click_checkbox_privaci_policy()
+    registration_page.click_checkbox_privacy_policy()
     registration_page.click_continue_button()
-    registration_page.check_succes_registration()
+    registration_page.check_success_registration()
 
 
+@allure.story('Сценарий пользователя')
+@allure.title('Изменение валюты')
 def test_change_currency(browser, url):
     main_page = MainPage(browser, url)
     main_page.change_currency_to_eu()
